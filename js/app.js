@@ -92,6 +92,12 @@ function mostrarPlatillos(platillos) {
         inputCantidad.id = `producto-${platillo.id}`;
         inputCantidad.classList.add('form-control');
 
+        // Función que detecta la cantidad y el platillo que se esta agregando.
+        inputCantidad.onchange = function() {
+            const cantidad = parseInt(inputCantidad.value);
+            agregarPlatillo({...platillo, cantidad });
+        };
+
         const agregar = document.createElement('DIV');
         agregar.classList.add('col-md-2');
         agregar.appendChild(inputCantidad);
@@ -102,4 +108,171 @@ function mostrarPlatillos(platillos) {
         row.appendChild(agregar);
         contenido.appendChild(row);
     })
+}
+
+function agregarPlatillo(producto) {
+    // Extrar el pedido actual
+    let { pedido } = cliente;
+
+    // Revisa que la cantidad sea mayor a 0
+    if (producto.cantidad > 0) {
+        // Comprueba si el elemento existe en el array
+        if (pedido.some(articulo => articulo.id === producto.id)) {
+            // El articulo ya existe, lo actualizamos en el array del pedido
+            const pedidoActualizado = pedido.map(articulo => {
+                if (articulo.id === producto.id) {
+                    articulo.cantidad = producto.cantidad;
+                }
+                return articulo;
+            });
+            // Se asigna el nuevo articulo a cliente.pedido
+            cliente.pedido = [...pedidoActualizado];
+        } else {
+            // El articulo no existe, lo agregamos al array del pedido
+            cliente.pedido = [...pedido, producto];
+        }
+    } else {
+        // Eliminar el articulo del pedido si es = 0
+        const resultado = pedido.filter(articulo => articulo.id !== producto.id)
+        cliente.pedido = [...resultado];
+    }
+    // Limpiar el codigo html
+    limpiarHTML();
+
+    // Mostrar el resumen
+    actualizarResumen();
+}
+
+function actualizarResumen() {
+    const contenido = document.querySelector('#resumen .contenido');
+
+    const resument = document.createElement('DIV');
+    resument.classList.add('col-md-6', 'card', 'py-5', 'px-3', 'shadow');
+
+    // Informacion de la Mesa
+    const mesa = document.createElement('P');
+    mesa.textContent = 'Mesa: ';
+    mesa.classList.add('fw-bold');
+
+    const mesaSpan = document.createElement('SPAN');
+    mesaSpan.textContent = cliente.mesa;
+    mesaSpan.classList.add('fw-normal');
+
+    // Informacion de la Hora
+    const hora = document.createElement('P');
+    hora.textContent = 'Hora: ';
+    hora.classList.add('fw-bold');
+
+    const horaSpan = document.createElement('SPAN');
+    horaSpan.textContent = cliente.hora;
+    horaSpan.classList.add('fw-normal');
+
+    // Agregar a elementos padres
+    mesa.appendChild(mesaSpan);
+    hora.appendChild(horaSpan);
+
+    // Iterar sobre el Array de pedido
+    const grupo = document.createElement('UL');
+    grupo.classList.add('list-group');
+
+    const { pedido } = cliente;
+    pedido.forEach(articulo => {
+        const { nombre, cantidad, precio, id } = articulo;
+
+        const lista = document.createElement('LI');
+        lista.classList.add('list-group-item');
+
+        const nombreElemento = document.createElement('H4');
+        nombreElemento.classList.add('my-4');
+        nombreElemento.textContent = nombre;
+
+        // Cantidad del articulo
+        const cantidadElemento = document.createElement('P');
+        cantidadElemento.classList.add('my-4');
+        cantidadElemento.textContent = 'Cantidad: ';
+
+        const cantidadValor = document.createElement('SPAN');
+        cantidadValor.classList.add('fw-normal');
+        cantidadValor.textContent = cantidad;
+
+        // Precio del articulo
+        const precioElemento = document.createElement('P');
+        precioElemento.classList.add('my-4');
+        precioElemento.textContent = 'Precio: ';
+
+        const precioValor = document.createElement('SPAN');
+        precioValor.classList.add('fw-normal');
+        precioValor.textContent = `$ ${precio}`;
+
+        // Subtotal del articulo
+        const subtotalElemento = document.createElement('P');
+        subtotalElemento.classList.add('my-4');
+        subtotalElemento.textContent = 'Subtotal: ';
+
+        const subtotalValor = document.createElement('SPAN');
+        subtotalValor.classList.add('fw-normal');
+        subtotalValor.textContent = calcularSubtotal(precio, cantidad);
+
+        // Boton para eliminar
+        const btnEliminar = document.createElement('BUTTON');
+        btnEliminar.classList.add('btn', 'btn-danger');
+        btnEliminar.textContent = 'Eliminar del pedido';
+
+        // Funcion para elimianr del pedido
+        btnEliminar.onclick = function() {
+            eliminarProducto(id);
+        }
+
+        // Agregar valores a sus contenedores
+        cantidadElemento.appendChild(cantidadValor);
+        precioElemento.appendChild(precioValor);
+        subtotalElemento.appendChild(subtotalValor);
+
+        // Agregar elemenots al LI
+        lista.appendChild(nombreElemento);
+        lista.appendChild(cantidadElemento);
+        lista.appendChild(precioElemento);
+        lista.appendChild(subtotalElemento);
+        lista.appendChild(btnEliminar);
+
+        // Agregar lista al grupo principal
+        grupo.appendChild(lista);
+    })
+
+    // Titulo de la sección
+    const heading = document.createElement('H3');
+    heading.textContent = 'Platillos consumidos';
+    heading.classList.add('my-4', 'text-center');
+
+    // Mostrar en el HTML
+    resument.appendChild(mesa);
+    resument.appendChild(hora);
+    resument.appendChild(heading);
+    resument.appendChild(grupo);
+
+    contenido.appendChild(resument);
+}
+
+function limpiarHTML() {
+    const contenido = document.querySelector('#resumen .contenido');
+
+    while (contenido.firstChild) {
+        contenido.removeChild(contenido.firstChild);
+    }
+}
+
+function calcularSubtotal(precio, cantidad) {
+    return `$ ${precio * cantidad}`;
+}
+
+function eliminarProducto(id) {
+    const { pedido } = cliente;
+    const resultado = pedido.filter(articulo => articulo.id !== id)
+    cliente.pedido = [...resultado];
+
+    // Limpiar el codigo html
+    limpiarHTML();
+
+    // Mostrar el resumen
+    actualizarResumen();
 }
