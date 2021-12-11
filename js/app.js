@@ -139,15 +139,20 @@ function agregarPlatillo(producto) {
     // Limpiar el codigo html
     limpiarHTML();
 
-    // Mostrar el resumen
-    actualizarResumen();
+    if (cliente.pedido.length) {
+        // Mostrar el resumen
+        actualizarResumen();
+    } else {
+        mensajePedidoVacio();
+    }
+
 }
 
 function actualizarResumen() {
     const contenido = document.querySelector('#resumen .contenido');
 
     const resument = document.createElement('DIV');
-    resument.classList.add('col-md-6', 'card', 'py-5', 'px-3', 'shadow');
+    resument.classList.add('col-md-6', 'card', 'py-2', 'px-3', 'shadow');
 
     // Informacion de la Mesa
     const mesa = document.createElement('P');
@@ -245,12 +250,15 @@ function actualizarResumen() {
     heading.classList.add('my-4', 'text-center');
 
     // Mostrar en el HTML
+    resument.appendChild(heading);
     resument.appendChild(mesa);
     resument.appendChild(hora);
-    resument.appendChild(heading);
     resument.appendChild(grupo);
 
     contenido.appendChild(resument);
+
+    // Mostrar formulario de Propinas
+    formularioPropinas();
 }
 
 function limpiarHTML() {
@@ -273,6 +281,44 @@ function eliminarProducto(id) {
     // Limpiar el codigo html
     limpiarHTML();
 
-    // Mostrar el resumen
-    actualizarResumen();
+    if (cliente.pedido.length) {
+        // Mostrar el resumen
+        actualizarResumen();
+    } else {
+        mensajePedidoVacio();
+    }
+
+    // El producto se eliminó, por lo tanto regresamos la cantidad a 0 en el formulario
+    const productoEliminado = `#producto-${id}`;
+    const inputEliminado = document.querySelector(productoEliminado);
+    inputEliminado.value = 0;
+}
+
+function mensajePedidoVacio() {
+    const contenido = document.querySelector('#resumen .contenido');
+    const texto = document.createElement('P');
+    texto.classList.add('text-center');
+    texto.textContent = 'Añade los elementos del pedido';
+
+    contenido.appendChild(texto);
+}
+
+function formularioPropinas() {
+    const contenido = document.querySelector('#resumen .contenido');
+
+    const formulario = document.createElement('DIV');
+    formulario.classList.add('col-md-6', 'formulario');
+    const divFormulario = document.createElement('DIV');
+    divFormulario.classList.add('card', 'py-2', 'px-3', 'shadow');
+
+    const heading = document.createElement('H3');
+    heading.classList.add('my-4', 'text-center');
+    heading.textContent = 'Propina';
+
+
+
+    formulario.appendChild(divFormulario)
+    divFormulario.appendChild(heading);
+
+    contenido.appendChild(formulario);
 }
